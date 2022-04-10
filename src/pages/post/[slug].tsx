@@ -9,6 +9,9 @@ import { getPrismicClient } from '../../services/prismic';
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
+import { ptBR } from 'date-fns/locale';
+import { format } from 'date-fns';
 
 interface Post {
   first_publication_date: string | null;
@@ -34,14 +37,28 @@ interface PostProps {
 export default function Post({ post }: PostProps) {
   // console.log(post)
 
+  // const totalWords = post.data.content.reduce((total, contentItem) => {
+  //   //total += RichText.asText(contentItem.body).split(' ').length
+  //   console.log(RichText.asText(contentItem.body));
+  //   return total
+  // })
   const router = useRouter();
 
   if (router.isFallback) {
     return <h1> Carregando...</h1>
   }
-
+  const formattedDate = format(
+    new Date(post.first_publication_date),
+    'dd MMM yyyy',
+    {
+      locale: ptBR,
+    }
+  )
   return (
     <>
+      <Head>
+        <title>{post.data.title}</title>
+      </Head>
       <Header />
       <img src={post.data.banner.url} alt="imagem" className={styles.banner} />
       <main className={commonStyles.container}>
@@ -51,7 +68,7 @@ export default function Post({ post }: PostProps) {
             <ul>
               <li>
                 <FiCalendar />
-                fdsa
+                {formattedDate}
               </li>
               <li>
                 <FiUser />
@@ -94,7 +111,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
       }
     }
   })
-  console.log(paths)
+  //console.log(paths)
   return {
     paths,
     fallback: true,
