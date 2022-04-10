@@ -1,11 +1,14 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
+import { RichText } from 'prismic-dom';
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import Header from '../../components/Header';
 
+import Prismic from '@prismicio/client'
 import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import { useRouter } from 'next/router';
 
 interface Post {
   first_publication_date: string | null;
@@ -29,23 +32,30 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps) {
-  console.log(post)
+  // console.log(post)
+
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return <h1> Carregando...</h1>
+  }
+
   return (
     <>
       <Header />
-      <img src="/banner.svg" alt="imagem" className={styles.banner} />
+      <img src={post.data.banner.url} alt="imagem" className={styles.banner} />
       <main className={commonStyles.container}>
         <div className={styles.post}>
           <div className={styles.postTop}>
-            <h1>Titulo do post</h1>
+            <h1>{post.data.title}</h1>
             <ul>
               <li>
                 <FiCalendar />
-                07 de abril de 2022
+                fdsa
               </li>
               <li>
                 <FiUser />
-                Caetano Burjack
+                {post.data.author}
               </li>
               <li>
                 <FiClock />
@@ -54,29 +64,39 @@ export default function Post({ post }: PostProps) {
             </ul>
           </div>
 
-          <article>
-            <h2>Titulo seção</h2>
-            <p>
-              texto falso texto falso texto falso texto falso
-              texto falso texto falso texto falso texto falso
-              texto falso texto falso texto falso texto falso
-              texto falso texto falso texto falso texto falso
-              texto falso
-            </p>
-          </article>
+          {post.data.content.map(content => {
+            return (
+              <article key={content.heading}>
+                <h2>{content.heading}</h2>
+                <div className={styles.postContent} dangerouslySetInnerHTML={{
+                  __html: RichText.asHtml(content.body)
+                }} />
+              </article>
 
+            )
+          })}
         </div>
+
       </main>
     </>
   )
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  // const prismic = getPrismicClient();
-  // const posts = await prismic.query(TODO);
-
+  const prismic = getPrismicClient();
+  const posts = await prismic.query([
+    Prismic.Predicates.at('document.type', 'p'),
+  ]);
+  const paths = posts.results.map(post => {
+    return {
+      params: {
+        slug: post.uid
+      }
+    }
+  })
+  console.log(paths)
   return {
-    paths: [],
+    paths,
     fallback: true,
   }
 };
