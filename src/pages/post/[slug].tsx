@@ -37,12 +37,20 @@ interface PostProps {
 export default function Post({ post }: PostProps) {
   // console.log(post)
 
-  const readTime = post.data.content.reduce((wordsAmount, contentItem) => {
-    wordsAmount += RichText.asText(contentItem.body).split(' ').length
-    wordsAmount += contentItem.heading.split(' ').length
-    return Math.ceil(wordsAmount / 200)
+  // const readTime = post.data.content.reduce((wordsAmount, contentItem) => {
+  //   wordsAmount += RichText.asText(contentItem.body).split(' ').length
+  //   wordsAmount += contentItem.heading.split(' ').length
+  //   return Math.ceil(wordsAmount / 200)
+  // }, 0)
+
+  const wordsAmount = post.data.content.reduce((total, contentItem) => {
+    total += contentItem.heading.split(' ').length;
+    const words = contentItem.body.map(item => item.text.split(' ').length);
+    words.map(word => (total += word));
+    return total;
   }, 0)
-  //console.log(readTime)
+
+  const readTime = Math.ceil(wordsAmount / 200)
   const router = useRouter();
 
   if (router.isFallback) {
@@ -135,7 +143,7 @@ export const getStaticProps: GetStaticProps = async context => {
       },
       content: response.data.content.map(content => {
         return {
-          heanding: content.heading,
+          heading: content.heading,
           body: [...content.body],
         }
       })
