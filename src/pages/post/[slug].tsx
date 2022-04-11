@@ -37,11 +37,12 @@ interface PostProps {
 export default function Post({ post }: PostProps) {
   // console.log(post)
 
-  // const totalWords = post.data.content.reduce((total, contentItem) => {
-  //   //total += RichText.asText(contentItem.body).split(' ').length
-  //   console.log(RichText.asText(contentItem.body));
-  //   return total
-  // })
+  const readTime = post.data.content.reduce((wordsAmount, contentItem) => {
+    wordsAmount += RichText.asText(contentItem.body).split(' ').length
+    wordsAmount += contentItem.heading.split(' ').length
+    return Math.ceil(wordsAmount / 200)
+  }, 0)
+  //console.log(readTime)
   const router = useRouter();
 
   if (router.isFallback) {
@@ -76,7 +77,7 @@ export default function Post({ post }: PostProps) {
               </li>
               <li>
                 <FiClock />
-                5 min
+                {`${readTime} min`}
               </li>
             </ul>
           </div>
@@ -89,7 +90,6 @@ export default function Post({ post }: PostProps) {
                   __html: RichText.asHtml(content.body)
                 }} />
               </article>
-
             )
           })}
         </div>
